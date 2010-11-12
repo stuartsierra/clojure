@@ -49,13 +49,8 @@
 	<configuration>
 	  <warnOnReflection>false</warnOnReflection>
 	  <temporaryOutputDirectory>false</temporaryOutputDirectory>
-	  <compileDeclaredNamespaceOnly>false</compileDeclaredNamespaceOnly>
 	  <namespaces>
-	    <namespace>clojure\.core</namespace>
 	    <namespace>!clojure\.parallel</namespace>
-	    <namespace>clojure\.test-clojure\.protocols\.examples</namespace>
-	    <namespace>clojure\.test-clojure\.genclass\.examples</namespace>
-	    <namespace>!clojure\.test-clojure\..*</namespace>
 	  </namespaces>
 	</configuration>
 	<executions>
@@ -72,6 +67,14 @@
 	    <goals>
 	      <goal>testCompile</goal>
 	    </goals>
+	    <configuration>
+	      <compileDeclaredNamespaceOnly>true</compileDeclaredNamespaceOnly>
+	      <testDeclaredNamespaceOnly>true</testDeclaredNamespaceOnly>
+	      <namespaces>
+		<namespace>clojure\.test-clojure\.protocols\.examples</namespace>
+		<namespace>clojure\.test-clojure\.genclass\.examples</namespace>
+	      </namespaces>
+	    </configuration>
 	  </execution>
 	  <execution>
 	    <id>test-clojure</id>
