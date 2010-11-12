@@ -12,7 +12,7 @@ Feedback: http://groups.google.com/group/clojure
 
 To Build:  mvn package
 
-To build without tests:  mvn -Dmaven.test.skip=true
+To build without tests:  mvn -Dmaven.test.skip=true package
 
 To Run:  java -cp target/clojure-$VERSION.jar clojure.main
 
