@@ -45,7 +45,6 @@
       <plugin>
 	<groupId>com.theoryinpractise</groupId>
 	<artifactId>clojure-maven-plugin</artifactId>
-	<version>1.3.5</version>
 	<executions>
 	  <execution>
 	    <id>compile-clojure</id>
@@ -54,8 +53,6 @@
 	      <goal>compile</goal>
 	    </goals>
 	    <configuration>
-	      <warnOnReflection>false</warnOnReflection>
-	      <temporaryOutputDirectory>false</temporaryOutputDirectory>
 	      <namespaces>
 		<namespace>!clojure\.parallel</namespace>
 	      </namespaces>
