@@ -10,8 +10,11 @@
 Docs: http://clojure.org
 Feedback: http://groups.google.com/group/clojure
 
-To Run: java -cp clojure.jar clojure.main
-To Build: ant
+To Build:  mvn package
+
+To build without tests:  mvn -Dmaven.test.skip=true
+
+To Run:  java -cp target/clojure-$VERSION.jar clojure.main
 
 --------------------------------------------------------------------------
 This program uses the ASM bytecode engineering library which is distributed
