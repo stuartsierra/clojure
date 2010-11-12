@@ -1,9 +1,4 @@
-test-classes/*
-classes/*
-*jar
-pom.xml
+target
 clojure.iws
 clojure.ipr
 nbproject/private/
-*.zip
-dist
