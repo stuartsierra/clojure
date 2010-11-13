@@ -7,9 +7,11 @@
   <groupId>org.clojure</groupId>
   <artifactId>clojure</artifactId>
   <name>clojure</name>
-  <packaging>jar</packaging>
+  <packaging>clojure</packaging>
   <version>1.3.0-SNAPSHOT</version>
+
   <url>http://clojure.org/</url>
+  <description>Clojure core environment and runtime library.</description>
 
   <parent>
     <groupId>org.clojure</groupId>
@@ -17,29 +19,16 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <description>Clojure core environment and runtime library.</description>
-  
-  <licenses>
-    <license>
-      <name>Eclipse Public License 1.0</name>
-      <url>http://opensource.org/licenses/eclipse-1.0.php</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
   <build>
     <plugins>
       <plugin>
 	<groupId>com.theoryinpractise</groupId>
 	<artifactId>clojure-maven-plugin</artifactId>
+	<version>1.3.5</version>
 	<extensions>true</extensions>
 	<executions>
 	  <execution>
-	    <id>clojure-compile</id>
-	    <phase>compile</phase>
-	    <goals>
-	      <goal>compile</goal>
-	    </goals>
+	    <id>default-compile</id>
 	    <configuration>
 	      <namespaces>
 		<!-- clojure.parallel requires jsr166y.jar -->
@@ -48,11 +37,7 @@
 	    </configuration>
 	  </execution>
 	  <execution>
-	    <id>clojure-testCompile</id>
-	    <phase>test-compile</phase>
-	    <goals>
-	      <goal>testCompile</goal>
-	    </goals>
+	    <id>default-testCompile</id>
 	    <configuration>
 	      <!-- Only 2 test namespaces need AOT-compilation -->
 	      <testDeclaredNamespaceOnly>true</testDeclaredNamespaceOnly>
@@ -61,13 +46,6 @@
 		<testNamespace>clojure\.test-clojure\.genclass\.examples</testNamespace>
 	      </testNamespaces>
 	    </configuration>
-	  </execution>
-	  <execution>
-	    <id>clojure-test</id>
-	    <phase>test</phase>
-	    <goals>
-	      <goal>test</goal>
-	    </goals>
 	  </execution>
 	</executions>
       </plugin>
