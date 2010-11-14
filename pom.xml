@@ -69,9 +69,25 @@
 	      <descriptors>
 		<descriptor>src/main/assembly/slim.xml</descriptor>
 	      </descriptors>
+	      <archive>
+		<manifest>
+		  <mainClass>clojure.main</mainClass>
+		</manifest>
+	      </archive>
 	    </configuration>
 	  </execution>
 	</executions>
+      </plugin>
+      <plugin>
+	<artifactId>maven-jar-plugin</artifactId>
+	<version>2.3.1</version>
+	<configuration>
+	  <archive>
+	    <manifest>
+	      <mainClass>clojure.main</mainClass>
+	    </manifest>
+	  </archive>
+	</configuration>
       </plugin>
       <plugin>
 	<artifactId>maven-source-plugin</artifactId>
