@@ -5939,15 +5939,16 @@
 		      "clojure/version.properties")
       properties     (doto (new java.util.Properties) (.load version-stream))
       version-string (.getProperty properties "version")
-      [_ major minor incremental qualifier] (re-matches
-					     #"(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z0-9_-]+))?"
-					     version-string)
+      [_ major minor incremental qualifier snapshot]
+      (re-matches
+       #"(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z0-9_]+))?(?:-(SNAPSHOT))?"
+       version-string)
       clojure-version {:major       (Integer/valueOf ^String major)
 		       :minor       (Integer/valueOf ^String minor)
 		       :incremental (Integer/valueOf ^String incremental)
-		       :qualifier   qualifier}]
+		       :qualifier   (if (= qualifier "SNAPSHOT") nil qualifier)}]
   (def ^:dynamic *clojure-version*
-       (if (= "SNAPSHOT" qualifier)
+       (if (.contains version-string "SNAPSHOT")
 	 (clojure.lang.RT/assoc clojure-version :interim true)
 	 clojure-version)))
       
@@ -5969,7 +5970,9 @@
        (when-let [i (:incremental *clojure-version*)]
          (str "." i))
        (when-let [q (:qualifier *clojure-version*)]
-         (when (pos? (count q)) (str "-" q)))))
+         (when (pos? (count q)) (str "-" q)))
+       (when (:interim *clojure-version*)
+	 "-SNAPSHOT")))
 
 (defn promise
   "Alpha - subject to change.
