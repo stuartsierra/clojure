@@ -10,11 +10,19 @@
 Docs: http://clojure.org
 Feedback: http://groups.google.com/group/clojure
 
-To Build:  mvn package
+
+To run:  java -cp clojure-${version}.jar clojure.main
+
+To build:  mvn package
+The built JARs will be in target/
+
+To build and install in local Maven repository:  mvn install
 
 To build without tests:  mvn -Dmaven.test.skip=true package
 
-To Run:  java -cp target/clojure-$VERSION.jar clojure.main
+To build a ZIP distribution:  mvn -P distribution package
+The built .zip will be in target/
+
 
 --------------------------------------------------------------------------
 This program uses the ASM bytecode engineering library which is distributed
