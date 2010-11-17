@@ -5816,7 +5816,9 @@
     (persistent! (reduce conj! (transient to) from))
     (reduce conj to from)))
 
-(require '[clojure.java.io :as jio])
+;; need to reload so that jio will be loaded (and therefore compiled)
+;; the second time clojure.core is loaded in the process of being AOT-compiled
+(require '[clojure.java.io :as jio :reload-all true])
 
 (defn- normalize-slurp-opts
   [opts]
