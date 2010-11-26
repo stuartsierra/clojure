@@ -10,6 +10,22 @@
   <url>http://clojure.org/</url>
   <description>Clojure core environment and runtime library.</description>
 
+  <developers>
+    <developer>
+      <name>Rich Hickey</name>
+      <email>richhickey@gmail.com</email>
+      <timezone>-5</timezone>
+    </developer>
+  </developers>
+
+  <licenses>
+    <license>
+      <name>Eclipse Public License 1.0</name>
+      <url>http://opensource.org/licenses/eclipse-1.0.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <parent>
     <groupId>org.clojure</groupId>
     <artifactId>pom.baseline</artifactId>
