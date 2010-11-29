@@ -6,11 +6,11 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>src/main/clojure</directory>
+      <directory>src/clj</directory>
       <outputDirectory>/</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>src/main/resources</directory>
+      <directory>src/resources</directory>
       <outputDirectory>/</outputDirectory>
       <filtered>true</filtered>
     </fileSet>
