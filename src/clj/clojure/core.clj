@@ -5856,7 +5856,7 @@
 
 ;; need to reload so that jio will be loaded (and therefore compiled)
 ;; the second time clojure.core is loaded in the process of being AOT-compiled
-(require '[clojure.java.io :as jio :reload-all true])
+(require '[clojure.java.io :as jio] :reload-all)
 
 (defn- normalize-slurp-opts
   [opts]
