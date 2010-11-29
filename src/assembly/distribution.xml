@@ -9,6 +9,14 @@
       <outputDirectory>src</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>doc</directory>
+      <outputDirectory>doc</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>test</directory>
+      <outputDirectory>test</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>target</directory>
       <outputDirectory>/</outputDirectory>
       <filtered>false</filtered>
