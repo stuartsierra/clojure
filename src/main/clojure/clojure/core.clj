@@ -303,7 +303,9 @@
                     m))
               m (conj (if (meta name) (meta name) {}) m)]
           (list 'def (with-meta name m)
-                (cons `fn (cons name fdecl)) ))))
+                ;;todo - restore propagation of fn name
+                ;;must figure out how to convey primitive hints to self calls first
+                (cons `fn fdecl) ))))
 
 (. (var defn) (setMacro))
 
@@ -814,7 +816,7 @@
 (defn int
   "Coerce to int"
   {
-   :inline (fn  [x] `(. clojure.lang.RT (intCast ~x)))
+   :inline (fn  [x] `(. clojure.lang.RT (~(if *unchecked-math* 'uncheckedIntCast 'intCast) ~x)))
    :added "1.0"}
   [x] (. clojure.lang.RT (intCast x)))
 
@@ -854,7 +856,7 @@
 (defn inc
   "Returns a number one greater than num. Does not auto-promote
   longs, will throw on overflow. See also: inc'"
-  {:inline (fn [x] `(. clojure.lang.Numbers (inc ~x)))
+  {:inline (fn [x] `(. clojure.lang.Numbers (~(if *unchecked-math* 'unchecked_inc 'inc) ~x)))
    :added "1.2"}
   [x] (. clojure.lang.Numbers (inc x)))
 
@@ -899,7 +901,7 @@
 (defn +
   "Returns the sum of nums. (+) returns 0. Does not auto-promote
   longs, will throw on overflow. See also: +'"
-  {:inline (fn [x y] `(. clojure.lang.Numbers (add ~x ~y)))
+  {:inline (fn [x y] `(. clojure.lang.Numbers (~(if *unchecked-math* 'unchecked_add 'add) ~x ~y)))
    :inline-arities #{2}
    :added "1.2"}
   ([] 0)
@@ -923,7 +925,7 @@
 (defn *
   "Returns the product of nums. (*) returns 1. Does not auto-promote
   longs, will throw on overflow. See also: *'"
-  {:inline (fn [x y] `(. clojure.lang.Numbers (multiply ~x ~y)))
+  {:inline (fn [x y] `(. clojure.lang.Numbers (~(if *unchecked-math* 'unchecked_multiply 'multiply) ~x ~y)))
    :inline-arities #{2}
    :added "1.2"}
   ([] 1)
@@ -959,7 +961,7 @@
   "If no ys are supplied, returns the negation of x, else subtracts
   the ys from x and returns the result. Does not auto-promote
   longs, will throw on overflow. See also: -'"
-  {:inline (fn [& args] `(. clojure.lang.Numbers (minus ~@args)))
+  {:inline (fn [& args] `(. clojure.lang.Numbers (~(if *unchecked-math* 'unchecked_minus 'minus) ~@args)))
    :inline-arities #{1 2}
    :added "1.2"}
   ([x] (. clojure.lang.Numbers (minus x)))
@@ -1055,7 +1057,7 @@
 (defn dec
   "Returns a number one less than num. Does not auto-promote
   longs, will throw on overflow. See also: dec'"
-  {:inline (fn [x] `(. clojure.lang.Numbers (dec ~x)))
+  {:inline (fn [x] `(. clojure.lang.Numbers (~(if *unchecked-math* 'unchecked_dec 'dec) ~x)))
    :added "1.2"}
   [x] (. clojure.lang.Numbers (dec x)))
 
@@ -1066,12 +1068,12 @@
    :added "1.0"}
   [x] (. clojure.lang.Numbers (unchecked_int_inc x)))
 
-(defn unchecked-inc-long
+(defn unchecked-inc
   "Returns a number one greater than x, a long.
   Note - uses a primitive operator subject to overflow."
-  {:inline (fn [x] `(. clojure.lang.Numbers (unchecked_long_inc ~x)))
+  {:inline (fn [x] `(. clojure.lang.Numbers (unchecked_inc ~x)))
    :added "1.0"}
-  [x] (. clojure.lang.Numbers (unchecked_long_inc x)))
+  [x] (. clojure.lang.Numbers (unchecked_inc x)))
 
 (defn unchecked-dec-int
   "Returns a number one less than x, an int.
@@ -1080,12 +1082,12 @@
    :added "1.0"}
   [x] (. clojure.lang.Numbers (unchecked_int_dec x)))
 
-(defn unchecked-dec-long
+(defn unchecked-dec
   "Returns a number one less than x, a long.
   Note - uses a primitive operator subject to overflow."
-  {:inline (fn [x] `(. clojure.lang.Numbers (unchecked_long_dec ~x)))
+  {:inline (fn [x] `(. clojure.lang.Numbers (unchecked_dec ~x)))
    :added "1.0"}
-  [x] (. clojure.lang.Numbers (unchecked_long_dec x)))
+  [x] (. clojure.lang.Numbers (unchecked_dec x)))
 
 (defn unchecked-negate-int
   "Returns the negation of x, an int.
@@ -1094,12 +1096,12 @@
    :added "1.0"}
   [x] (. clojure.lang.Numbers (unchecked_int_negate x)))
 
-(defn unchecked-negate-long
+(defn unchecked-negate
   "Returns the negation of x, a long.
   Note - uses a primitive operator subject to overflow."
-  {:inline (fn [x] `(. clojure.lang.Numbers (unchecked_long_negate ~x)))
+  {:inline (fn [x] `(. clojure.lang.Numbers (unchecked_minus ~x)))
    :added "1.0"}
-  [x] (. clojure.lang.Numbers (unchecked_long_negate x)))
+  [x] (. clojure.lang.Numbers (unchecked_minus x)))
 
 (defn unchecked-add-int
   "Returns the sum of x and y, both int.
@@ -1108,12 +1110,12 @@
    :added "1.0"}
   [x y] (. clojure.lang.Numbers (unchecked_int_add x y)))
 
-(defn unchecked-add-long
+(defn unchecked-add
   "Returns the sum of x and y, both long.
   Note - uses a primitive operator subject to overflow."
-  {:inline (fn [x y] `(. clojure.lang.Numbers (unchecked_long_add ~x ~y)))
+  {:inline (fn [x y] `(. clojure.lang.Numbers (unchecked_add ~x ~y)))
    :added "1.0"}
-  [x y] (. clojure.lang.Numbers (unchecked_long_add x y)))
+  [x y] (. clojure.lang.Numbers (unchecked_add x y)))
 
 (defn unchecked-subtract-int
   "Returns the difference of x and y, both int.
@@ -1122,12 +1124,12 @@
    :added "1.0"}
   [x y] (. clojure.lang.Numbers (unchecked_int_subtract x y)))
 
-(defn unchecked-subtract-long
+(defn unchecked-subtract
   "Returns the difference of x and y, both long.
   Note - uses a primitive operator subject to overflow."
-  {:inline (fn [x y] `(. clojure.lang.Numbers (unchecked_long_subtract ~x ~y)))
+  {:inline (fn [x y] `(. clojure.lang.Numbers (unchecked_minus ~x ~y)))
    :added "1.0"}
-  [x y] (. clojure.lang.Numbers (unchecked_long_subtract x y)))
+  [x y] (. clojure.lang.Numbers (unchecked_minus x y)))
 
 (defn unchecked-multiply-int
   "Returns the product of x and y, both int.
@@ -1136,12 +1138,12 @@
    :added "1.0"}
   [x y] (. clojure.lang.Numbers (unchecked_int_multiply x y)))
 
-(defn unchecked-multiply-long
+(defn unchecked-multiply
   "Returns the product of x and y, both long.
   Note - uses a primitive operator subject to overflow."
-  {:inline (fn [x y] `(. clojure.lang.Numbers (unchecked_long_multiply ~x ~y)))
+  {:inline (fn [x y] `(. clojure.lang.Numbers (unchecked_multiply ~x ~y)))
    :added "1.0"}
-  [x y] (. clojure.lang.Numbers (unchecked_long_multiply x y)))
+  [x y] (. clojure.lang.Numbers (unchecked_multiply x y)))
 
 (defn unchecked-divide-int
   "Returns the division of x by y, both int.
@@ -1150,26 +1152,12 @@
    :added "1.0"}
   [x y] (. clojure.lang.Numbers (unchecked_int_divide x y)))
 
-(defn unchecked-divide-long
-  "Returns the division of x by y, both long.
-  Note - uses a primitive operator subject to truncation."
-  {:inline (fn [x y] `(. clojure.lang.Numbers (unchecked_long_divide ~x ~y)))
-   :added "1.0"}
-  [x y] (. clojure.lang.Numbers (unchecked_long_divide x y)))
-
 (defn unchecked-remainder-int
   "Returns the remainder of division of x by y, both int.
   Note - uses a primitive operator subject to truncation."
   {:inline (fn [x y] `(. clojure.lang.Numbers (unchecked_int_remainder ~x ~y)))
    :added "1.0"}
   [x y] (. clojure.lang.Numbers (unchecked_int_remainder x y)))
-
-(defn unchecked-remainder-long
-  "Returns the remainder of division of x by y, both long.
-  Note - uses a primitive operator subject to truncation."
-  {:inline (fn [x y] `(. clojure.lang.Numbers (unchecked_long_remainder ~x ~y)))
-   :added "1.0"}
-  [x y] (. clojure.lang.Numbers (unchecked_long_remainder x y)))
 
 (defn pos?
   "Returns true if num is greater than zero, else false"
@@ -1188,14 +1176,16 @@
 (defn quot
   "quot[ient] of dividing numerator by denominator."
   {:added "1.0"
-   :static true}
+   :static true
+   :inline (fn [x y] `(. clojure.lang.Numbers (quotient ~x ~y)))}
   [num div]
     (. clojure.lang.Numbers (quotient num div)))
 
 (defn rem
   "remainder of dividing numerator by denominator."
   {:added "1.0"
-   :static true}
+   :static true
+   :inline (fn [x y] `(. clojure.lang.Numbers (remainder ~x ~y)))}
   [num div]
     (. clojure.lang.Numbers (remainder num div)))
 
@@ -2354,7 +2344,7 @@
        (loop [~i 0]
          (when (< ~i n#)
            ~@body
-           (recur (unchecked-inc-long ~i)))))))
+           (recur (unchecked-inc ~i)))))))
 
 (defn map
   "Returns a lazy sequence consisting of the result of applying f to the
@@ -2726,7 +2716,7 @@
                            needrec (steppair 0)
                            subform (steppair 1)
                            recform-chunk 
-                             `(recur ~seq- ~chunk- ~count- (unchecked-inc-long ~i-))
+                             `(recur ~seq- ~chunk- ~count- (unchecked-inc ~i-))
                            steppair-chunk (step recform-chunk (nnext exprs))
                            subform-chunk (steppair-chunk 1)]
                        [true
@@ -2832,7 +2822,7 @@
        (loop [~i 0]
          (when (< ~i n#)
            ~@body
-           (recur (unchecked-inc-long ~i)))))))
+           (recur (unchecked-inc ~i)))))))
 
 #_(defn into
   "Returns a new coll consisting of to-coll with all of the items of
@@ -2996,7 +2986,7 @@
 
 (defn float
   "Coerce to float"
-  {:inline (fn  [x] `(. clojure.lang.RT (floatCast ~x)))
+  {:inline (fn  [x] `(. clojure.lang.RT (~(if *unchecked-math* 'uncheckedFloatCast 'floatCast) ~x)))
    :added "1.0"}
   [^Number x] (clojure.lang.RT/floatCast x))
 
@@ -3008,19 +2998,19 @@
 
 (defn short
   "Coerce to short"
-  {:inline (fn  [x] `(. clojure.lang.RT (shortCast ~x)))
+  {:inline (fn  [x] `(. clojure.lang.RT (~(if *unchecked-math* 'uncheckedShortCast 'shortCast) ~x)))
    :added "1.0"}
   [^Number x] (clojure.lang.RT/shortCast x))
 
 (defn byte
   "Coerce to byte"
-  {:inline (fn  [x] `(. clojure.lang.RT (byteCast ~x)))
+  {:inline (fn  [x] `(. clojure.lang.RT (~(if *unchecked-math* 'uncheckedByteCast 'byteCast) ~x)))
    :added "1.0"}
   [^Number x] (clojure.lang.RT/byteCast x))
 
 (defn char
   "Coerce to char"
-  {:inline (fn  [x] `(. clojure.lang.RT (charCast ~x)))
+  {:inline (fn  [x] `(. clojure.lang.RT (~(if *unchecked-math* 'uncheckedCharCast 'charCast) ~x)))
    :added "1.1"}
   [x] (. clojure.lang.RT (charCast x)))
 
@@ -4073,12 +4063,12 @@
                                           (= k :when) `(if ~v
                                                          ~(do-cmod etc)
                                                          (recur
-                                                           (unchecked-inc-long ~gi)))
+                                                           (unchecked-inc ~gi)))
                                           (keyword? k)
                                             (err "Invalid 'for' keyword " k)
                                           :else
                                             `(do (chunk-append ~gb ~body-expr)
-                                                 (recur (unchecked-inc-long ~gi)))))]
+                                                 (recur (unchecked-inc ~gi)))))]
                           `(fn ~giter [~gxs]
                              (lazy-seq
                                (loop [~gxs ~gxs]
@@ -4583,7 +4573,7 @@
        (if (< ~idx  (alength a#))
          (do
            (aset ~ret ~idx ~expr)
-           (recur (unchecked-inc-long ~idx)))
+           (recur (unchecked-inc ~idx)))
          ~ret))))
 
 (defmacro areduce
@@ -4595,7 +4585,7 @@
   `(let [a# ~a]
      (loop  [~idx 0 ~ret ~init]
        (if (< ~idx  (alength a#))
-         (recur (unchecked-inc-long ~idx) ~expr)
+         (recur (unchecked-inc ~idx) ~expr)
          ~ret))))
 
 (defn float-array
@@ -5670,6 +5660,11 @@
   "Set to true when compiling files, false otherwise."
   {:added "1.0"})
 
+(add-doc-and-meta *unchecked-math*
+  "While bound to true, compilations of +, -, *, inc, dec and the
+  coercions will be done without overflow checks. Default: false."
+  {:added "1.3"})
+
 (add-doc-and-meta *ns*
   "A clojure.lang.Namespace object representing the current namespace."
   {:added "1.0"})
@@ -5877,11 +5872,14 @@
   {:added "1.0"}
   ([f & opts]
      (let [opts (normalize-slurp-opts opts)
-           sb (StringBuilder.)
-           sw (java.io.StringWriter.)]
+           sb (StringBuilder.)]
        (with-open [#^java.io.Reader r (apply jio/reader f opts)]
-         (jio/copy r sw)
-         (str sw)))))
+         (loop [c (.read r)]
+           (if (neg? c)
+             (str sb)
+             (do
+               (.append sb (char c))
+               (recur (.read r)))))))))
 
 (defn spit
   "Opposite of slurp.  Opens f with writer, writes content, then
