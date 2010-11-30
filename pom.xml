@@ -63,11 +63,29 @@
 	  <execution>
 	    <id>default-compile</id>
 	    <configuration>
+	      <compileDeclaredNamespaceOnly>true</compileDeclaredNamespaceOnly>
 	      <namespaces>
+		<namespaces>clojure\.core</namespaces>
 		<!-- clojure.parallel requires jsr166y.jar -->
 		<namespace>!clojure\.parallel</namespace>
 	      </namespaces>
 	    </configuration>
+	  </execution>
+	  <execution>
+	    <id>clojure-library-compile</id>
+	    <configuration>
+	      <namespaces>
+		<!-- clojure.core is alreayd compiled -->
+		<namespaces>!clojure\.core</namespaces>
+		<!-- clojure.parallel requires jsr166y.jar -->
+		<namespace>!clojure\.parallel</namespace>
+	      </namespaces>
+	    </configuration>
+	    <!-- After compiling clojure.core -->
+	    <phase>process-classes</phase>
+	    <goals>
+	      <goal>compile</goal>
+	    </goals>
 	  </execution>
 	  <execution>
 	    <id>default-testCompile</id>
