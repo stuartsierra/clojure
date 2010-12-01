@@ -63,9 +63,9 @@
 	  <execution>
 	    <id>default-compile</id>
 	    <configuration>
+	      <compileDeclaredNamespaceOnly>true</compileDeclaredNamespaceOnly>
 	      <namespaces>
-		<!-- clojure.parallel requires jsr166y.jar -->
-		<namespace>!clojure\.parallel</namespace>
+		<namespace>clojure\.bootstrap-compile</namespace>
 	      </namespaces>
 	    </configuration>
 	  </execution>
