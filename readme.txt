@@ -11,17 +11,22 @@ Docs: http://clojure.org
 Feedback: http://groups.google.com/group/clojure
 
 
-To run:  java -cp clojure-${version}.jar clojure.main
+To run:  java -cp clojure-${VERSION}.jar clojure.main
 
-To build:  mvn package
-The built JARs will be in target/
+To build locally with Ant:  ant
 
-To build without tests:  mvn -Dmaven.test.skip=true package
 
-To build and install in local Maven repository:  mvn install
+Maven 2 build instructions:
 
-To build a ZIP distribution:  mvn -P distribution package
-The built .zip will be in target/
+  To build:  mvn package 
+  The built JARs will be in target/
+
+  To build without testing:  mvn package -Dmaven.test.skip=true
+
+  To build and install in local Maven repository:  mvn install
+
+  To build a ZIP distribution:  mvn package -Pdistribution
+  The built .zip will be in target/
 
 
 --------------------------------------------------------------------------
