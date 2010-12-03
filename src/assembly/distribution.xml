@@ -30,6 +30,9 @@
       <source>pom.xml</source>
     </file>
     <file>
+      <source>build.xml</source>
+    </file>
+    <file>
       <source>readme.txt</source>
       <filtered>true</filtered>
     </file>
