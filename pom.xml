@@ -44,6 +44,9 @@
 	<directory>src/resources</directory>
 	<filtering>true</filtering>
       </resource>
+      <resource>
+	<directory>src/clj</directory>
+      </resource>
     </resources>
     <plugins>
       <plugin>
@@ -110,7 +113,6 @@
             </goals>
             <configuration>
               <sources>
-                <source>src/clj</source>
 		<source>src/jvm</source>
               </sources>
             </configuration>
