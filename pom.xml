@@ -166,10 +166,31 @@
 	  </execution>
 	</executions>
       </plugin>
+      <plugin>
+	<!-- do not push SCM changes to upstream repository;
+	     prevents pushing tags/commits for failed releases;
+	     instead, push SCM changes in Hudson configuration -->
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-release-plugin</artifactId>
+	<version>2.1</version>
+	<configuration>
+	  <pushChanges>false</pushChanges>
+	  <localCheckout>true</localCheckout>
+	</configuration>
+      </plugin>
+      <plugin>
+	<!-- disable the Surefire testing plugin -->
+	<artifactId>maven-surefire-plugin</artifactId>
+	<configuration>
+	  <skip>true</skip>
+	</configuration>
+      </plugin>
     </plugins>
   </build>
+
   <profiles>
     <profile>
+      <!-- "mvn -Pdistribution package" builds a .zip file -->
       <id>distribution</id>
       <build>
 	<plugins>
@@ -191,18 +212,6 @@
 		</configuration>
 	      </execution>
 	    </executions>
-	  </plugin>
-	  <plugin>
-	    <!-- do not push SCM changes to upstream repository;
-	         prevents pushing tags/commits for failed releases;
-	         instead, push SCM changes in Hudson configuration -->
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-release-plugin</artifactId>
-	    <version>2.1</version>
-	    <configuration>
-	      <pushChanges>false</pushChanges>
-	      <localCheckout>true</localCheckout>
-	    </configuration>
 	  </plugin>
 	</plugins>
       </build>
