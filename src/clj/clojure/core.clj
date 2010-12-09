@@ -398,7 +398,8 @@
   "Returns true if x is nil, false otherwise."
   {:tag Boolean
    :added "1.0"
-   :static true}
+   :static true
+   :inline (fn [x] (list 'clojure.lang.Util/identical x nil))}
   [x] (clojure.lang.Util/identical x nil))
 
 (def
@@ -1821,7 +1822,7 @@
   {:added "1.0"
    :static true}
   [^clojure.lang.Agent a f & args]
-  (. a (dispatch (binding-conveyor-fn f) args false)))
+  (.dispatch a (binding [*agent* a] (binding-conveyor-fn f)) args false))
 
 (defn send-off
   "Dispatch a potentially blocking action to an agent. Returns the
@@ -1832,7 +1833,7 @@
   {:added "1.0"
    :static true}
   [^clojure.lang.Agent a f & args]
-  (. a (dispatch (binding-conveyor-fn f) args true)))
+  (.dispatch a (binding [*agent* a] (binding-conveyor-fn f)) args true))
 
 (defn release-pending-sends
   "Normally, actions sent directly or indirectly during another action
@@ -3714,7 +3715,7 @@
   {:added "1.0"
    :static true}
   [alias namespace-sym]
-  (.addAlias *ns* alias (find-ns namespace-sym)))
+  (.addAlias *ns* alias (the-ns namespace-sym)))
 
 (defn ns-aliases
   "Returns a map of the aliases for the namespace."
@@ -3884,10 +3885,12 @@
       (reduce1 process-entry [] bents))))
 
 (defmacro let
-  "Evaluates the exprs in a lexical context in which the symbols in
+  "binding => binding-form init-expr
+
+  Evaluates the exprs in a lexical context in which the symbols in
   the binding-forms are bound to their respective init-exprs or parts
   therein."
-  {:added "1.0"}
+  {:added "1.0", :special-form true, :forms '[(let [bindings*] exprs*)]}
   [bindings & body]
   (assert-args let
      (vector? bindings) "a vector for its binding"
@@ -3914,16 +3917,14 @@
 
 ;redefine fn with destructuring and pre/post conditions
 (defmacro fn
-  "(fn name? [params* ] exprs*)
-  (fn name? ([params* ] exprs*)+)
-
-  params => positional-params* , or positional-params* & next-param
+  "params => positional-params* , or positional-params* & next-param
   positional-param => binding-form
   next-param => binding-form
   name => symbol
 
   Defines a function"
-  {:added "1.0"}
+  {:added "1.0", :special-form true,
+   :forms '[(fn name? [params* ] exprs*) (fn name? ([params* ] exprs*)+)]}
   [& sigs]
     (let [name (if (symbol? (first sigs)) (first sigs) nil)
           sigs (if name (next sigs) sigs)
@@ -3959,7 +3960,7 @@
   "Evaluates the exprs in a lexical context in which the symbols in
   the binding-forms are bound to their respective init-exprs or parts
   therein. Acts as a recur target."
-  {:added "1.0"}
+  {:added "1.0", :special-form true, :forms '[(loop [bindings*] exprs*)]}
   [bindings & body]
     (assert-args loop
       (vector? bindings) "a vector for its binding"
@@ -4263,75 +4264,7 @@
   [name & decls]
     (list* `defn (with-meta name (assoc (meta name) :private true)) decls))
 
-(defn print-doc [v]
-  (println "-------------------------")
-  (println (str (ns-name (:ns (meta v))) "/" (:name (meta v))))
-  (prn (:arglists (meta v)))
-  (when (:macro (meta v))
-    (println "Macro"))
-  (println " " (:doc (meta v))))
-
-(defn find-doc
-  "Prints documentation for any var whose documentation or name
- contains a match for re-string-or-pattern"
-  {:added "1.0"}
-  [re-string-or-pattern]
-    (let [re  (re-pattern re-string-or-pattern)]
-      (doseq [ns (all-ns)
-              v (sort-by (comp :name meta) (vals (ns-interns ns)))
-              :when (and (:doc (meta v))
-                         (or (re-find (re-matcher re (:doc (meta v))))
-                             (re-find (re-matcher re (str (:name (meta v)))))))]
-               (print-doc v))))
-
-(defn special-form-anchor
-  "Returns the anchor tag on http://clojure.org/special_forms for the
-  special form x, or nil"
-  {:added "1.0"
-   :static true}
-  [x]
-  (#{'. 'def 'do 'fn 'if 'let 'loop 'monitor-enter 'monitor-exit 'new
-  'quote 'recur 'set! 'throw 'try 'var} x))
-
-(defn syntax-symbol-anchor
-  "Returns the anchor tag on http://clojure.org/special_forms for the
-  special form that uses syntax symbol x, or nil"
-  {:added "1.0"
-   :static true}
-  [x]
-  ({'& 'fn 'catch 'try 'finally 'try} x))
-
-(defn print-special-doc
-  [name type anchor]
-  (println "-------------------------")
-  (println name)
-  (println type)
-  (println (str "  Please see http://clojure.org/special_forms#" anchor)))
-
-(defn print-namespace-doc
-  "Print the documentation string of a Namespace."
-  {:added "1.0"}
-  [nspace]
-  (println "-------------------------")
-  (println (str (ns-name nspace)))
-  (println " " (:doc (meta nspace))))
-
-(defmacro doc
-  "Prints documentation for a var or special form given its name"
-  {:added "1.0"}
-  [name]
-  (cond
-   (special-form-anchor `~name)
-   `(print-special-doc '~name "Special Form" (special-form-anchor '~name))
-   (syntax-symbol-anchor `~name)
-   `(print-special-doc '~name "Syntax Symbol" (syntax-symbol-anchor '~name))
-   :else
-    (let [nspace (find-ns name)]
-      (if nspace
-        `(print-namespace-doc ~nspace)
-        `(print-doc (var ~name))))))
-
- (defn tree-seq
+(defn tree-seq
   "Returns a lazy sequence of the nodes in a tree, via a depth-first walk.
    branch? must be a fn of one arg that returns true if passed a node
    that can have children (but may not).  children must be a fn of one
@@ -5736,12 +5669,13 @@
 
 
 (defmacro letfn 
-  "Takes a vector of function specs and a body, and generates a set of
-  bindings of functions to their names. All of the names are available
-  in all of the definitions of the functions, as well as the body.
+  "fnspec ==> (fname [params*] exprs) or (fname ([params*] exprs)+)
 
-  fnspec ==> (fname [params*] exprs) or (fname ([params*] exprs)+)"
-  {:added "1.0"}
+  Takes a vector of function specs and a body, and generates a set of
+  bindings of functions to their names. All of the names are available
+  in all of the definitions of the functions, as well as the body."
+  {:added "1.0", :forms '[(letfn [fnspecs*] exprs*)],
+   :special-form true, :url nil}
   [fnspecs & body] 
   `(letfn* ~(vec (interleave (map first fnspecs) 
                              (map #(cons `fn %) fnspecs)))
@@ -5865,8 +5799,8 @@
     opts))
 
 (defn slurp
-  "Reads the file named by f using the encoding enc into a string
-  and returns it."
+  "Opens a reader on f and reads all its contents, returning a string.
+  See clojure.java.io/reader for a complete list of supported arguments."
   {:added "1.0"}
   ([f & opts]
      (let [opts (normalize-slurp-opts opts)
@@ -6026,6 +5960,9 @@
     (reify 
      clojure.lang.IDeref
       (deref [_] (.await d) @v)
+     clojure.lang.IPromiseImpl
+      (hasValue [this]
+       (= 0 (.getCount d)))
      clojure.lang.IFn
       (invoke [this x]
         (locking d

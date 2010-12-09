@@ -55,6 +55,23 @@
     (is (true? (instance? ArithmeticException (second @err))))
     (is (thrown? RuntimeException (send agt inc)))))
 
+(deftest can-send-from-error-handler-before-popping-action-that-caused-error
+  (let [target-agent (agent :before-error)
+        handler (fn [agt err]
+                  (send target-agent (constantly :sent-after-error)))
+        failing-agent (agent nil :error-handler handler)]
+    (send failing-agent (fn [_] (throw (RuntimeException.))))
+    (await-for 1000 failing-agent)
+    (is (= :sent-after-error @target-agent))))
+
+#_(deftest can-send-to-self-from-error-handler-before-popping-action-that-caused-error
+  (let [handler (fn [agt err]
+                  (send *agent* (constantly :sent-after-error)))
+        failing-agent (agent nil :error-handler handler)]
+    (send failing-agent (fn [_] (throw (RuntimeException.))))
+    (await-for 1000 failing-agent)
+    (is (= :sent-after-error @failing-agent))))
+
 (deftest restart-no-clear
   (let [p (promise)
         agt (agent 1 :error-mode :fail)]
@@ -107,6 +124,25 @@
     (is (true? (await-for 100 agt)))
     (is (= 10 @agt))
     (is (nil? (agent-error agt)))))
+
+(deftest earmuff-agent-bound
+  (let [a (agent 1)]
+    (send a (fn [_] *agent*))
+    (await a)
+    (is (= a @a))))
+
+(def ^:dynamic *bind-me* :root-binding)
+
+(deftest thread-conveyance-to-agents
+  (let [a (agent nil)]
+    (doto (Thread.
+           (fn []
+             (binding [*bind-me* :thread-binding]
+               (send a (constantly *bind-me*)))
+             (await a)))
+      (.start)
+      (.join))
+    (is (= @a :thread-binding))))
 
 ; http://clojure.org/agents
 

@@ -107,7 +107,6 @@ static class Action implements Runnable{
 	static void doRun(Action action){
 		try
 			{
-			Var.pushThreadBindings(RT.map(RT.AGENT, action.agent));
 			nested.set(PersistentVector.EMPTY);
 
 			Throwable error = null;
@@ -129,7 +128,7 @@ static class Action implements Runnable{
 				}
 			else
 				{
-				nested.set(PersistentVector.EMPTY);
+				nested.set(null); // allow errorHandler to send
 				if(action.agent.errorHandler != null)
 					{
 					try
@@ -159,7 +158,6 @@ static class Action implements Runnable{
 		finally
 			{
 			nested.set(null);
-			Var.popThreadBindings();
 			}
 	}
 
