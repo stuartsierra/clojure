@@ -6204,3 +6204,11 @@
   `(with-redefs-fn ~(zipmap (map #(list `var %) (take-nth 2 bindings))
                             (take-nth 2 (next bindings)))
                     (fn [] ~@body)))
+
+(defn write-classes
+  "Writes compiled classfiles for the objects named by syms in the named libs."
+  {:added "1.3"}
+  [syms libs]
+  (binding [*compile-write-classes* (set (map (comp #(.replace % "." "/") namespace-munge) syms))]
+    (doseq [lib libs]
+      (load-one lib true true))))
