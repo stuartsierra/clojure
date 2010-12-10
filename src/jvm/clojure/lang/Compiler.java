@@ -4055,7 +4055,7 @@ static public class ObjExpr implements Expr{
 		cv.visitEnd();
 
 		bytecode = cw.toByteArray();
-		if(RT.booleanCast(COMPILE_FILES.deref()) || RT.booleanCast(COMPILE_WRITE_CLASSES.invoke(internalName)))
+		if(RT.booleanCast(COMPILE_FILES.deref()) || RT.booleanCast(COMPILE_WRITE_CLASSES.invoke(name)))
 			writeClassFile(internalName, bytecode);
 //		else
 //			getCompiledClass();

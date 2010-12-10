@@ -6209,6 +6209,6 @@
   "Writes compiled classfiles for the objects named by syms in the named libs."
   {:added "1.3"}
   [syms libs]
-  (binding [*compile-write-classes* (set (map (comp #(.replace % "." "/") namespace-munge) syms))]
+  (binding [*compile-write-classes* (set (map namespace-munge syms))]
     (doseq [lib libs]
       (load-one lib true true))))
