@@ -5317,6 +5317,14 @@
     (load-one lib true true))
   lib)
 
+(defn compile-write-classes
+  "Loads lib, writing out classfiles only for the named classes."
+  {:added "1.3"}
+  [lib & class-names]
+  (binding [*compile-write-classes* (set (map str class-names))]
+    (load-one lib true true))
+  lib)
+
 ;;;;;;;;;;;;; nested associative ops ;;;;;;;;;;;
 
 (defn get-in
@@ -5590,8 +5598,16 @@
   {:added "1.0"})
 
 (add-doc-and-meta *compile-files*
-  "Set to true when compiling files, false otherwise."
+  "When true, all generated classes will be written out as .class files
+  to *compile-path*. Default: true during 'compile', false otherwise."
   {:added "1.0"})
+
+(add-doc-and-meta *compile-write-classes*
+  "Set of class names (as Strings) to be written out as .class
+  files. Default: the empty set. 
+
+  Ignored when *compile-files* is true."
+  {:added "1.3"})
 
 (add-doc-and-meta *unchecked-math*
   "While bound to true, compilations of +, -, *, inc, dec and the
@@ -6204,11 +6220,3 @@
   `(with-redefs-fn ~(zipmap (map #(list `var %) (take-nth 2 bindings))
                             (take-nth 2 (next bindings)))
                     (fn [] ~@body)))
-
-(defn write-classes
-  "Writes compiled classfiles for the objects named by syms in the named libs."
-  {:added "1.3"}
-  [syms libs]
-  (binding [*compile-write-classes* (set (map namespace-munge syms))]
-    (doseq [lib libs]
-      (load-one lib true true))))
