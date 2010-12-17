@@ -76,18 +76,6 @@
 	    </configuration>
 	  </execution>
 	  <execution>
-	    <id>clojure-test-compile</id>
-	    <phase>compile</phase>
-	    <goals>
-	      <goal>run</goal>
-	    </goals>
-	    <configuration>
-	      <target>
-		<ant target="compile-tests" />
-	      </target>
-	    </configuration>
-	  </execution>
-	  <execution>
 	    <id>clojure-test</id>
 	    <phase>compile</phase>
 	    <goals>
