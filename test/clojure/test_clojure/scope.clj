@@ -42,3 +42,24 @@
 	(send a3 (fn [_] (on-exit *s* (log 1))))
 	(await a1 a2 a3))
       (is (= #{1 2 3 4 5} @log-atom)))))
+
+(deftest t-scope-transactions
+  (let [log-atom (atom #{})
+	log (fn [message] (swap! log-atom conj message))]
+    (let [r1 (ref nil)
+	  r2 (ref nil)
+	  r3 (ref nil)]
+      (with-scope *s*
+	(dosync
+	 (ref-set r1 nil)
+	 (on-exit *s* (log 5))
+	 (ref-set r2 nil)
+	 (on-exit *s* (log 4)))
+	(try (dosync
+	      (on-exit *s* (log 3))
+	      (ref-set r3 nil)
+	      (on-exit *s* (log 2))
+	      (throw (Exception. "Boom!"))
+	      (on-exit *s* (log 1)))
+	     (catch Exception e nil)))
+      (is (= #{4 5} @log-atom)))))
