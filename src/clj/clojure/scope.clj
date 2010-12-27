@@ -20,7 +20,7 @@
   "Declares a Var representing a resource scope."
   [name]
   {:pre [(symbol? name)]}
-  `(declare ~(vary-meta name assoc :dynamic true)))
+  `(declare ~(vary-meta name assoc :dynamic true :scope true)))
 
 (defn handle-scope-exit [s cause]
   (await s)
