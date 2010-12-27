@@ -23,7 +23,8 @@
   `(declare ~(vary-meta name assoc :dynamic true)))
 
 (defn handle-scope-exit [s cause]
-  (doseq [[condition f] s]
+  (await s)
+  (doseq [[condition f] @s]
     (when (or (= :exit condition)
 	      (= cause condition))
       (f))))
@@ -37,7 +38,7 @@
   remaining callbacks will not be executed."
   [s & body]
   {:pre [(symbol? s)]}
-  `(binding [~s (list)]
+  `(binding [~s (agent (list))]
      (try (let [result# (do ~@body)]
 	    (handle-scope-exit ~s :success)
 	    result#)
@@ -50,21 +51,18 @@
   exits, either normally or because of an exception."
   [s & body]
   {:pre [(symbol? s)]}
-  `(io! "Attempted to call on-exit in a transaction"
-	(set! ~s (conj ~s [:exit (fn [] ~@body)]))))
+  `(send ~s conj [:exit (fn [] ~@body)]))
 
 (defmacro on-failure
   "Adds a callback to scope s which will execute body when the scope
   exits because of a thrown exception."
   [s & body]
   {:pre [(symbol? s)]}
-  `(io! "Attempted to call on-failure in a transaction"
-	(set! ~s (conj ~s [:failure (fn [] ~@body)]))))
+  `(send ~s conj [:failure (fn [] ~@body)]))
 
 (defmacro on-success
   "Adds a callback to scope s which will execute body when the scope
   exits normally."
   [s & body]
   {:pre [(symbol? s)]}
-  `(io! "Attempted to call on-success in a transaction"
-	(set! ~s (conj ~s [:success (fn [] ~@body)]))))
+  `(send ~s conj [:success (fn [] ~@body)]))
