@@ -68,30 +68,3 @@
   {:pre [(symbol? s)]}
   `(io! "Attempted to call on-success in a transaction"
 	(set! ~s (conj ~s [:success (fn [] ~@body)]))))
-
-
-;;; Examples:
-(comment
-  (declare-scope *s*)
-
-  (assert (= "12345"
-	     (with-out-str
-	       (with-scope *s* 
-		 (on-success *s* (pr 5)) 
-		 (on-exit *s* (pr 4))
-		 (pr 1)
-		 (on-success *s* (pr 3))
-		 (pr 2)))))
-
-  (assert (= "124"
-	     (with-out-str
-	       (try
-		 (with-scope *s* 
-		   (on-success *s* (pr 5)) 
-		   (on-exit *s* (pr 4)) 
-		   (pr 1)
-		   (pr 2)
-		   (throw (Exception. "Boom!"))
-		   (pr 3)
-		   (on-exit *s* (pr 6)))
-		 (catch Exception e nil))))))

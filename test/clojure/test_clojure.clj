@@ -67,6 +67,7 @@
       :data
       :reflect
       :errors
+      :scope
       ])
 
 (def test-namespaces
