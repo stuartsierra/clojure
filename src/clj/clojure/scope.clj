@@ -47,23 +47,26 @@
 	  (finally
 	   (handle-scope-exit ~s)))))
 
+(defn add-scope-handler [s condition f]
+  (send s update-in [:handlers] conj [condition f]))
+
 (defmacro on-exit
   "Adds a callback to scope s which will execute body when the scope
   exits, either normally or because of an exception."
   [s & body]
   {:pre [(symbol? s)]}
-  `(send ~s update-in [:handlers] conj [:exit (fn [] ~@body)]))
+  `(add-scope-handler ~s :exit (fn [] ~@body)))
 
 (defmacro on-failure
   "Adds a callback to scope s which will execute body when the scope
   exits because of a thrown exception."
   [s & body]
   {:pre [(symbol? s)]}
-  `(send ~s update-in [:handlers] conj [:failure (fn [] ~@body)]))
+  `(add-scope-handler ~s :failure (fn [] ~@body)))
 
 (defmacro on-success
   "Adds a callback to scope s which will execute body when the scope
   exits normally."
   [s & body]
   {:pre [(symbol? s)]}
-  `(send ~s update-in [:handlers] conj [:success (fn [] ~@body)]))
+  `(add-scope-handler ~s :success (fn [] ~@body)))
