@@ -22,12 +22,13 @@
   {:pre [(symbol? name)]}
   `(declare ~(vary-meta name assoc :dynamic true :scope true)))
 
-(defn handle-scope-exit [s cause]
+(defn handle-scope-exit [s]
   (await s)
-  (doseq [[condition f] @s]
-    (when (or (= :exit condition)
-	      (= cause condition))
-      (f))))
+  (let [{:keys [handlers cause]} @s]
+    (doseq [[condition f] handlers]
+      (when (or (= :exit condition)
+		(= cause condition))
+	(f)))))
 
 (defmacro with-scope
   "Executes body in scope s, which must have been previously declared
@@ -38,31 +39,31 @@
   remaining callbacks will not be executed."
   [s & body]
   {:pre [(symbol? s)]}
-  `(binding [~s (agent (list))]
-     (try (let [result# (do ~@body)]
-	    (handle-scope-exit ~s :success)
-	    result#)
+  `(binding [~s (agent {:handlers (list) :cause :success})]
+     (try ~@body
 	  (catch Throwable t#
-	    (handle-scope-exit ~s :failure)
-	    (throw t#)))))
+	    (send ~s assoc :cause :failure)
+	    (throw t#))
+	  (finally
+	   (handle-scope-exit ~s)))))
 
 (defmacro on-exit
   "Adds a callback to scope s which will execute body when the scope
   exits, either normally or because of an exception."
   [s & body]
   {:pre [(symbol? s)]}
-  `(send ~s conj [:exit (fn [] ~@body)]))
+  `(send ~s update-in [:handlers] conj [:exit (fn [] ~@body)]))
 
 (defmacro on-failure
   "Adds a callback to scope s which will execute body when the scope
   exits because of a thrown exception."
   [s & body]
   {:pre [(symbol? s)]}
-  `(send ~s conj [:failure (fn [] ~@body)]))
+  `(send ~s update-in [:handlers] conj [:failure (fn [] ~@body)]))
 
 (defmacro on-success
   "Adds a callback to scope s which will execute body when the scope
   exits normally."
   [s & body]
   {:pre [(symbol? s)]}
-  `(send ~s conj [:success (fn [] ~@body)]))
+  `(send ~s update-in [:handlers] conj [:success (fn [] ~@body)]))
