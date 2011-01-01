@@ -47,35 +47,30 @@
 	  (finally
 	   (handle-scope-exit ~s)))))
 
-(defn add-scope-handler [s condition f]
-  (send s update-in [:handlers] conj [condition f]))
+(defmacro add-scope-handler
+  [s condition & body]
+  {:pre [(symbol? s)
+	 (#{:exit :success :failure} condition)]}
+  `(if (thread-bound? (var ~s))
+     (send ~s update-in [:handlers] conj [~condition (fn [] ~@body)])
+     (throw (IllegalArgumentException.
+	     ~(str "Tried to add on-" (name condition)
+		   " handler to inactive scope " s)))))
 
 (defmacro on-exit
   "Adds a callback to scope s which will execute body when the scope
   exits, either normally or because of an exception."
   [s & body]
-  {:pre [(symbol? s)]}
-  `(if (thread-bound? (var ~s))
-     (add-scope-handler ~s :exit (fn [] ~@body))
-     (throw (IllegalArgumentException.
-	     ~(str "Tried to add on-exit handler to inactive scope " s)))))
+  `(add-scope-handler ~s :exit ~@body))
 
 (defmacro on-failure
   "Adds a callback to scope s which will execute body when the scope
   exits because of a thrown exception."
   [s & body]
-  {:pre [(symbol? s)]}
-  `(if (thread-bound? (var ~s))
-     (add-scope-handler ~s :failure (fn [] ~@body))
-     (throw (IllegalArgumentException.
-	     ~(str "Tried to add on-failure handler to inactive scope " s)))))
+  `(add-scope-handler ~s :failure ~@body))
 
 (defmacro on-success
   "Adds a callback to scope s which will execute body when the scope
   exits normally."
   [s & body]
-  {:pre [(symbol? s)]}
-  `(if (thread-bound? (var ~s))
-     (add-scope-handler ~s :success (fn [] ~@body))
-     (throw (IllegalArgumentException.
-	     ~(str "Tried to add on-success handler to inactive scope " s)))))
+  `(add-scope-handler ~s :success ~@body))
