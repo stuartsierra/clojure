@@ -25,6 +25,8 @@
 (defn handle-scope-exit [s]
   (await s)
   (let [{:keys [handlers cause]} @s]
+    ;; There's a race condition here: other threads could still be
+    ;; adding new handlers, which will not be executed.
     (doseq [[condition f] handlers]
       (when (or (= :exit condition)
 		(= cause condition))
