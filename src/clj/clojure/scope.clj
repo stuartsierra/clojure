@@ -55,18 +55,27 @@
   exits, either normally or because of an exception."
   [s & body]
   {:pre [(symbol? s)]}
-  `(add-scope-handler ~s :exit (fn [] ~@body)))
+  `(if (thread-bound? (var ~s))
+     (add-scope-handler ~s :exit (fn [] ~@body))
+     (throw (IllegalArgumentException.
+	     ~(str "Tried to add on-exit handler to inactive scope " s)))))
 
 (defmacro on-failure
   "Adds a callback to scope s which will execute body when the scope
   exits because of a thrown exception."
   [s & body]
   {:pre [(symbol? s)]}
-  `(add-scope-handler ~s :failure (fn [] ~@body)))
+  `(if (thread-bound? (var ~s))
+     (add-scope-handler ~s :failure (fn [] ~@body))
+     (throw (IllegalArgumentException.
+	     ~(str "Tried to add on-failure handler to inactive scope " s)))))
 
 (defmacro on-success
   "Adds a callback to scope s which will execute body when the scope
   exits normally."
   [s & body]
   {:pre [(symbol? s)]}
-  `(add-scope-handler ~s :success (fn [] ~@body)))
+  `(if (thread-bound? (var ~s))
+     (add-scope-handler ~s :success (fn [] ~@body))
+     (throw (IllegalArgumentException.
+	     ~(str "Tried to add on-success handler to inactive scope " s)))))
