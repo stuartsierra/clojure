@@ -1,6 +1,7 @@
 (ns clojure.test-clojure.scope
   (:use clojure.scope
-	clojure.test))
+	clojure.test)
+  (:import (java.util.concurrent CountDownLatch)))
 
 (declare-scope *s*)
 
@@ -63,3 +64,58 @@
 	      (on-exit *s* (log 1)))
 	     (catch Exception e nil)))
       (is (= #{4 5} @log-atom)))))
+
+(deftest t-scope-futures
+  (let [log-atom (atom [])
+	log (fn [message] (swap! log-atom conj message))
+	latch1 (CountDownLatch. 1)
+	latch2 (CountDownLatch. 1)]
+    (with-scope *s*
+      (future (.await latch1)
+	      (on-exit *s* (log :b))
+	      (.countDown latch2))
+      (on-exit *s* (log :a))
+      (.countDown latch1)
+      (.await latch2))
+    (is (= @log-atom [:b :a]))))
+
+;; Test that an attempt to add handlers to scope throws an exception
+;; if that scope has already ended.  The sequence of events in this
+;; test is described by this table:
+;;
+;;     | Main thread     | Future's thread |
+;;     |-----------------+-----------------|
+;;     |                 | Await latch 1   |
+;;     | Enter scope *s* |                 |
+;;     | Add handler :a  |                 |
+;;     | Close latch 1   |                 |
+;;     | Await latch 2   | Add handler :b  |
+;;     |                 | Close latch 2   |
+;;     | Exit scope *s*  | Await latch 3   |
+;;     | Close latch 3   |                 |
+;;     | Await latch 4   | Add handler :c  |
+;;     |                 | Catch exception |
+;;     |                 | Close latch 4   |
+;;     | Assert result   |                 |
+(deftest t-scope-error-if-not-running
+  (let [log-atom (atom [])
+	log (fn [message] (swap! log-atom conj message))
+	latch1 (CountDownLatch. 1)
+	latch2 (CountDownLatch. 1)
+	latch3 (CountDownLatch. 1)
+	latch4 (CountDownLatch. 1)]
+    (with-scope *s*
+      (future (try (.await latch1)
+		   (on-exit *s* (log :b))
+		   (.countDown latch2)
+		   (.await latch3)
+		   (on-exit *s* (log :c))
+		(catch Exception e
+		  (log :error))
+		(finally (.countDown latch4))))
+      (on-exit *s* (log :a))
+      (.countDown latch1)
+      (.await latch2))
+    (.countDown latch3)
+    (.await latch4)
+    (is (= @log-atom [:error :b :a]))))
