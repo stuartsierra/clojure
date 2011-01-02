@@ -80,8 +80,9 @@
     (is (= @log-atom [:b :a]))))
 
 ;; Test that an attempt to add handlers to scope throws an exception
-;; if that scope has already ended.  The sequence of events in this
-;; test is described by this table:
+;; if that scope has already been terminated in another thread.  The
+;; sequence of events in this test is described by this table, with
+;; time progressing from top to bottom:
 ;;
 ;;     | Main thread     | Future's thread |
 ;;     |-----------------+-----------------|
@@ -97,6 +98,7 @@
 ;;     |                 | Catch exception |
 ;;     |                 | Close latch 4   |
 ;;     | Assert result   |                 |
+;;
 (deftest t-scope-error-if-not-running
   (let [log-atom (atom [])
 	log (fn [message] (swap! log-atom conj message))
@@ -118,4 +120,4 @@
       (.await latch2))
     (.countDown latch3)
     (.await latch4)
-    (is (= @log-atom [:error :b :a]))))
+    (is (= @log-atom [:b :a :error]))))

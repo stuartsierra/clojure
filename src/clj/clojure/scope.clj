@@ -22,39 +22,58 @@
   {:pre [(symbol? name)]}
   `(declare ~(vary-meta name assoc :dynamic true :scope true)))
 
-(defn handle-scope-exit [s]
-  (await s)
+(defn scope []
+  "Returns a new resource scope."
+  (ref {:handlers (list)
+	:state :running
+	:cause :success}))
+
+(defn fail-scope
+  "Marks scope s as having exited with a failure."
+  [s]
+  (dosync
+   (alter s assoc :cause :failure)))
+
+(defn exit-scope
+  "Closes scope s and executes its handlers."
+  [s]
+  (dosync
+   (alter s update-in [:state]
+	  (fn [state]
+	    (if (= state :running)
+	      :done
+	      (throw (IllegalArgumentException.
+		      "exit-scope called a scope that has already exited"))))))
   (let [{:keys [handlers cause]} @s]
-    ;; There's a race condition here: other threads could still be
-    ;; adding new handlers, which will not be executed.
     (doseq [[condition f] handlers]
       (when (or (= :exit condition)
 		(= cause condition))
 	(f)))))
 
 (defmacro with-scope
-  "Executes body in scope s, which must have been previously declared
-  with declare-scope. When body completes, normally or abnormally,
+  "Executes body in a new scope bound to s, which must be a Var
+  declared ^:dynamic. When body completes, normally or abnormally,
   executes callbacks declared with on-exit, on-failure, or
   on-success. Callbacks will be executed in the reverse order in which
   they were declared. If a callback function throws an exception,
   remaining callbacks will not be executed."
   [s & body]
   {:pre [(symbol? s)]}
-  `(binding [~s (agent {:handlers (list) :cause :success})]
+  `(binding [~s (scope)]
      (try ~@body
 	  (catch Throwable t#
-	    (send ~s assoc :cause :failure)
+	    (fail-scope ~s)
 	    (throw t#))
 	  (finally
-	   (handle-scope-exit ~s)))))
+	   (exit-scope ~s)))))
 
 (defmacro add-scope-handler
   [s condition & body]
   {:pre [(symbol? s)
 	 (#{:exit :success :failure} condition)]}
-  `(if (thread-bound? (var ~s))
-     (send ~s update-in [:handlers] conj [~condition (fn [] ~@body)])
+  `(if (and (bound? (var ~s)) (= :running (:state (deref ~s))))
+     (dosync (alter ~s update-in [:handlers] conj
+		    [~condition (fn [] ~@body)]))
      (throw (IllegalArgumentException.
 	     ~(str "Tried to add on-" (name condition)
 		   " handler to inactive scope " s)))))
