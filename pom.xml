@@ -44,9 +44,6 @@
 	<directory>src/resources</directory>
 	<filtering>true</filtering>
       </resource>
-      <resource>
-	<directory>src/clj</directory>
-      </resource>
     </resources>
     <plugins>
       <plugin>
@@ -102,7 +99,7 @@
             <id>clojure-test-compile</id>
             <phase>test-compile</phase>
             <goals>
-              <goal>test-compile</goal>
+              <goal>testCompile</goal>
             </goals>
             <configuration>
               <namespaces>
@@ -112,12 +109,6 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-	<artifactId>maven-antrun-plugin</artifactId>
-	<version>1.6</version>
-	<executions>
-	</executions>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
