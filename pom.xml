@@ -98,6 +98,19 @@
               </namespaces>
             </configuration>
           </execution>
+          <execution>
+            <id>clojure-test-compile</id>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>test-compile</goal>
+            </goals>
+            <configuration>
+              <namespaces>
+                <namespace>clojure.test-clojure.genclass.examples</namespace>
+                <namespace>clojure.test-clojure.protocols.examples</namespace>
+              </namespaces>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -121,6 +134,18 @@
               <sources>
 		<source>src/jvm</source>
                 <source>src/clj</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-clojure-test-source-dirs</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+		<source>test</source>
               </sources>
             </configuration>
           </execution>
