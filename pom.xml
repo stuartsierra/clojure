@@ -73,6 +73,28 @@
             <configuration>
               <namespaces>
                 <namespace>clojure.core</namespace>
+                <namespace>clojure.core.protocols</namespace>
+                <namespace>clojure.main</namespace>
+                <namespace>clojure.set</namespace>
+                <namespace>clojure.xml</namespace>
+                <namespace>clojure.zip</namespace>
+                <namespace>clojure.inspector</namespace>
+                <namespace>clojure.walk</namespace>
+                <namespace>clojure.stacktrace</namespace>
+                <namespace>clojure.template</namespace>
+                <namespace>clojure.test</namespace>
+                <namespace>clojure.test.tap</namespace>
+                <namespace>clojure.test.junit</namespace>
+                <namespace>clojure.pprint</namespace>
+                <namespace>clojure.java.io</namespace>
+                <namespace>clojure.repl</namespace>
+                <namespace>clojure.java.browse</namespace>
+                <namespace>clojure.java.javadoc</namespace>
+                <namespace>clojure.java.shell</namespace>
+                <namespace>clojure.java.browse-ui</namespace>
+                <namespace>clojure.string</namespace>
+                <namespace>clojure.data</namespace>
+                <namespace>clojure.reflect</namespace>
               </namespaces>
             </configuration>
           </execution>
