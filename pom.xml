@@ -120,6 +120,7 @@
             <configuration>
               <sources>
 		<source>src/jvm</source>
+                <source>src/clj</source>
               </sources>
             </configuration>
           </execution>
