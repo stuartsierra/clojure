@@ -59,7 +59,7 @@
       <plugin>
         <groupId>org.clojure</groupId>
         <artifactId>clojure-maven-plugin</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
         <executions>
           <execution>
             <id>clojure-compile</id>
