@@ -5739,6 +5739,25 @@
   Defaults to true"
   {:added "1.0"})
 
+(add-doc-and-meta *data-readers*
+  "A map from keywords to data reader functions. A data reader
+  function takes a single argument and returns a value to use in its
+  place.
+
+  When the reader encounters #:keyword it will read the next form and
+  call the data reader function mapped to that keyword. Example:
+
+      (binding [*data-readers* 
+                 (assoc *data-readers* :user/reversed (fn [x] (reverse x)))]
+        (read-string \"#:user/reversed (1 2 3)\"))
+      ;=> (3 2 1)
+
+  If no function is mapped to the given keyword, the following form
+  will be returned with the added metadata key :data mapped to the
+  keyword. If the form does not support IMeta (examples: numbers,
+  strings) it will be returned as-is."
+  {:added "1.4"})
+
 (defn future?
   "Returns true if x is a future"
   {:added "1.1"

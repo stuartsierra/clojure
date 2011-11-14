@@ -292,6 +292,26 @@
 (deftest t-Metadata
   (is (= (meta '^:static ^:awesome ^{:static false :bar :baz} sym) {:awesome true, :bar :baz, :static true})))
 
+;; Data readers
+
+(deftest data-readers-undefined
+  (let [x (binding [*data-readers* nil]
+            (read-string "#:clojure.test-clojure.reader/foo [1 2 3]"))]
+    (is (= [1 2 3] x))
+    (is (= :clojure.test-clojure.reader/foo (:data (meta x))))))
+
+(deftest data-readers-not-imeta
+  (let [x (binding [*data-readers* nil]
+            (read-string "#:clojure.test-clojure.reader/foo \"foo\""))]
+    (is (= "foo" x))))
+
+(deftest data-readers-provided
+  (let [x (binding [*data-readers*
+                    {::foo set}]
+            (read-string "#:clojure.test-clojure.reader/foo [1 2 3]"))]
+    (is (= #{1 2 3} x))
+    (is (not (contains? (meta x) :data)))))
+
 ;; Var-quote (#')
 
 (deftest t-Var-quote)

@@ -109,6 +109,7 @@ static IFn ctorReader = new CtorReader();
 	dispatchMacros['!'] = new CommentReader();
 	dispatchMacros['<'] = new UnreadableReader();
 	dispatchMacros['_'] = new DiscardReader();
+        dispatchMacros[':'] = new DataReader();
 	}
 
 static boolean isWhitespace(int ch){
@@ -1197,6 +1198,50 @@ public static class CtorReader extends AFn{
 
 	return ret;
 	}
+}
+
+
+public static class DataReader extends AFn{
+	public Object invoke(Object reader, Object firstChar){
+		PushbackReader r = (PushbackReader) reader;
+                try { r.unread(':'); }
+                catch (IOException e) { throw new RuntimeException(e); }
+                    
+		Object meta = read(r, true, null, true);
+		if(!(meta instanceof Keyword))
+			throw new IllegalArgumentException(":data metadata must be Keyword");
+
+		Object o = read(r, true, null, true);
+
+                ILookup data_readers = (ILookup)RT.DATA_READERS.deref();
+                IFn data = (IFn)RT.get(data_readers, meta);
+                if(data != null)
+                        return data.invoke(o);
+
+                // No data reader, just add :data metadata
+                meta = RT.map(RT.DATA_KEY, meta);
+		int line = -1;
+		if(r instanceof LineNumberingPushbackReader)
+			line = ((LineNumberingPushbackReader) r).getLineNumber();
+		if(o instanceof IMeta)
+			{
+			if(line != -1 && o instanceof ISeq)
+				meta = ((IPersistentMap) meta).assoc(RT.LINE_KEY, line);
+			if(o instanceof IReference)
+				{
+				((IReference)o).resetMeta((IPersistentMap) meta);
+				return o;
+				}
+			Object ometa = RT.meta(o);
+			for(ISeq s = RT.seq(meta); s != null; s = s.next()) {
+				IMapEntry kv = (IMapEntry) s.first();
+				ometa = RT.assoc(ometa, kv.getKey(), kv.getValue());
+				}
+			return ((IObj) o).withMeta((IPersistentMap) ometa);
+			}
+		else
+                        return o;
+        }
 }
 
 /*
