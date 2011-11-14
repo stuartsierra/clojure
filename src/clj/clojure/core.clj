@@ -6526,3 +6526,24 @@
   "Returns true if a value has been produced for a promise, delay, future or lazy sequence."
   {:added "1.3"}
   [^clojure.lang.IPending x] (.isRealized x))
+
+;;; Data readers
+
+(defn- parse-date
+  ([] (parse-date 1970 1 1 0 0 0 0))
+  ([year] (parse-date year 1 1 0 0 0 0))
+  ([year month] (parse-date year month 1 0 0 0 0))
+  ([year month day] (parse-date year month day 0 0 0 0))
+  ([year month day hrs] (parse-date year month day hrs 0 0 0))
+  ([year month day hrs min] (parse-date year month day hrs min 0 0))
+  ([year month day hrs min sec] (parse-date year month day hrs min sec 0))
+  ([year month day hrs min sec ms]
+     (-> (doto (java.util.GregorianCalendar. year (dec month) day hrs min sec)
+           (.setTimeZone (java.util.TimeZone/getTimeZone "UTC")))
+         (.getTime)
+         (.getTime)
+         (+ (or ms 0))
+         (java.util.Date.))))
+
+(alter-var-root #'*data-readers*
+  assoc :instant (fn [v] (apply parse-date v)))

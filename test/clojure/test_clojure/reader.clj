@@ -312,6 +312,15 @@
     (is (= #{1 2 3} x))
     (is (not (contains? (meta x) :data)))))
 
+(deftest default-date-reader
+  (are [x y] (= x (.toGMTString (read-string y)))
+       "13 Nov 2011 00:00:00 GMT" "#:instant [2011 11 13]"
+       "1 Jan 1920 00:00:00 GMT"  "#:instant [1920 1 1]"
+       "31 Dec 2010 03:02:01 GMT" "#:instant [2010 12 31 3 2 1]"
+       "31 Dec 2010 03:02:01 GMT" "#:instant [2010 12 31 3 2 1 99]")
+  (is (= 99 (rem (.getTime (read-string "#:instant [2010 12 31 3 2 1 99]"))
+                 1000))))
+
 ;; Var-quote (#')
 
 (deftest t-Var-quote)
