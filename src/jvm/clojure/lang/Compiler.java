@@ -78,6 +78,7 @@ static final Symbol ISEQ = Symbol.intern("clojure.lang.ISeq");
 
 static final Keyword inlineKey = Keyword.intern(null, "inline");
 static final Keyword inlineAritiesKey = Keyword.intern(null, "inline-arities");
+static final Keyword interopKey = Keyword.intern(null, "interop");
 static final Keyword staticKey = Keyword.intern(null, "static");
 static final Keyword arglistsKey = Keyword.intern(null, "arglists");
 static final Symbol INVOKE_STATIC = Symbol.intern("invokeStatic");
@@ -4229,7 +4230,8 @@ static public class ObjExpr implements Expr{
 		cv.visitEnd();
 
 		bytecode = cw.toByteArray();
-		if(RT.booleanCast(COMPILE_FILES.deref()))
+		Object compile_files = COMPILE_FILES.deref();
+		if(Boolean.TRUE.equals(compile_files) || (isDeftype() && interopKey.equals(compile_files)))
 			writeClassFile(internalName, bytecode);
 //		else
 //			getCompiledClass();
