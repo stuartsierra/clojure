@@ -5674,7 +5674,16 @@
   {:added "1.0"})
 
 (add-doc-and-meta *compile-files*
-  "Set to true when compiling files, false otherwise."
+  "Controls which Java .class files are written out to *compile-path*.
+  Has three possible values:
+
+  true     - write all .class files
+
+  :interop - write .class files only for Java interop forms:
+             gen-class, gen-interface, deftype, defrecord,
+             defprotocol, and definterface
+
+  false    - do not write .class files (default)"
   {:added "1.0"})
 
 (add-doc-and-meta *unchecked-math*
