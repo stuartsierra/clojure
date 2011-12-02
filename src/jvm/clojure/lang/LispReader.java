@@ -1145,8 +1145,50 @@ public static List readDelimitedList(char delim, PushbackReader r, boolean isRec
 public static class CtorReader extends AFn{
 	public Object invoke(Object reader, Object firstChar){
 		PushbackReader r = (PushbackReader) reader;
+		Object name = read(r, true, null, false);
+                if (!(name instanceof Symbol)) 
+                        throw new RuntimeException("Reader tag must be a symbol");
+                Symbol sym = (Symbol)name;
+                if (sym.getNamespace() != null || RT.BUILTIN_DATA_TAGS.contains(sym))
+                        return readTagged(r, sym);
+                else
+                        return readRecord(r, sym);
+        }
 
-		Object recordName = read(r, true, null, false);
+	private Object readTagged(PushbackReader reader, Symbol tag){
+		Object o = read(reader, true, null, true);
+
+		ILookup data_readers = (ILookup)RT.DATA_READERS.deref();
+		IFn data = (IFn)RT.get(data_readers, tag);
+		if(data != null)
+			return data.invoke(o);
+
+		// No data reader, just add :data metadata
+		Object meta = RT.map(RT.DATA_KEY, tag);
+		int line = -1;
+		if(reader instanceof LineNumberingPushbackReader)
+			line = ((LineNumberingPushbackReader) reader).getLineNumber();
+		if(o instanceof IMeta)
+			{
+			if(line != -1 && o instanceof ISeq)
+				meta = ((IPersistentMap) meta).assoc(RT.LINE_KEY, line);
+			if(o instanceof IReference)
+				{
+				((IReference)o).resetMeta((IPersistentMap) meta);
+				return o;
+				}
+			Object ometa = RT.meta(o);
+			for(ISeq s = RT.seq(meta); s != null; s = s.next()) {
+				IMapEntry kv = (IMapEntry) s.first();
+				ometa = RT.assoc(ometa, kv.getKey(), kv.getValue());
+				}
+			return ((IObj) o).withMeta((IPersistentMap) ometa);
+			}
+		else
+			return o;
+	}
+
+        private Object readRecord(PushbackReader r, Symbol recordName){
 		Class recordClass = RT.classForName(recordName.toString());
 		char endch;
 		boolean shortForm = true;

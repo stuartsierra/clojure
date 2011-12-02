@@ -6897,7 +6897,8 @@ public static Object load(Reader rdr, String sourcePath, String sourceName) {
 			       LINE_AFTER, pushbackReader.getLineNumber()
 			       ,RT.UNCHECKED_MATH, RT.UNCHECKED_MATH.deref()
 					,RT.WARN_ON_REFLECTION, RT.WARN_ON_REFLECTION.deref()
-			));
+			       ,RT.DATA_READERS, RT.DATA_READERS.deref()
+                        ));
 
 	try
 		{
